@@ -43,7 +43,7 @@ def test_01():
     data = np.vstack([x1, x2, x3, x4])
 
     som = Kohonen(dims_in=2, dims_out=(2, 2))
-    som.train(data, epochs=2000, decay=False)
+    som.train(data, epochs=200, decay=False)
     bmus = som.predict(data)
     
     colors = np.array([i * som.n + j for i, j in bmus])
