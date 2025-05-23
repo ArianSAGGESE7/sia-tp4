@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 class HopfieldNetwork:
     def __init__(self):
@@ -24,3 +24,23 @@ class HopfieldNetwork:
             if verbose:
                 print(x.reshape(5, 5))
         return x, history
+
+# Función para mostrar un patrón
+def show_pattern(pattern, title=""):
+    plt.imshow(pattern.reshape(5, 5), cmap='gray_r')
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
+
+# Función para agregar ruido
+def add_noise(pattern, noise_level=0.3):
+    noisy = pattern.copy()
+    n = len(pattern)
+    num_flips = int(noise_level * n)
+    flip_indices = np.random.choice(n, num_flips, replace=False)
+    noisy[flip_indices] *= -1
+    return noisy
+
+# Verifica si dos patrones son iguales
+def is_equal(p1, p2):
+    return np.array_equal(p1, p2)

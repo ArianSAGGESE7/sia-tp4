@@ -1,81 +1,82 @@
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-import numpy as np 
-import matplotlib.pyplot as plt
-from Hopfield import HopfieldNetwork
+import numpy as np
+from Hopfield import HopfieldNetwork, show_pattern, add_noise, is_equal
 
-# --- Funciones auxiliares ---
-def show_pattern(vec, title=""):
-    plt.imshow(vec.reshape(5,5), cmap='gray')
-    plt.title(title)
-    plt.axis('off')
-    plt.show()
-
-def add_noise(pattern, noise_level=0.3):
-    noisy = pattern.copy()
-    n = len(noisy)
-    flip_indices = np.random.choice(n, size=int(n * noise_level), replace=False)
-    noisy[flip_indices] *= -1
-    return noisy
-
-# --- Letras codificadas ---
+# Definir patrones de letras (matrices 5x5, valores -1 y 1)
 J = np.array([
-      1,  1,  1,  1,  1,
-     -1, -1,  -1, 1, -1,
-     -1, -1,  -1, 1, -1,
-      1,  -1,  -1, 1, -1,
-      1, 1,  1, -1, -1
-])
+    [-1, -1, 1, 1, -1],
+    [-1,-1, -1, 1, -1],
+    [-1,-1, -1, 1, -1],
+    [ 1, -1,-1, 1, -1],
+    [-1, 1,  1,-1, -1]
+]).flatten()
 
 L = np.array([
-      1, -1, -1, -1, -1,
-      1, -1, -1, -1, -1,
-      1, -1, -1, -1, -1,
-      1, -1, -1, -1, -1,
-      1,  1,  1,  1,  1
-])
+    [ 1, -1, -1, -1, -1],
+    [ 1, -1, -1, -1, -1],
+    [ 1, -1, -1, -1, -1],
+    [ 1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1]
+]).flatten()
 
 C = np.array([
-      1,  1,  1,  1,  1,
-      1, -1, -1, -1, -1,
-      1, -1, -1, -1, -1,
-      1, -1, -1, -1, -1,
-      1,  1,  1,  1,  1
-])
+    [ 1,  1,  1,  1,  1],
+    [ 1, -1, -1, -1, -1],
+    [ 1, -1, -1, -1, -1],
+    [ 1, -1, -1, -1, -1],
+    [ 1,  1,  1,  1,  1]
+]).flatten()
 
 T = np.array([
-      1,  1,  1,  1,  1,
-     -1,  1, -1,  1, -1,
-     -1,  1, -1,  1, -1,
-     -1,  1, -1,  1, -1,
-     -1,  1, -1,  1, -1
-])
+    [ 1,  1,  1,  1,  1],
+    [-1, -1,  1, -1, -1],
+    [-1, -1,  1, -1, -1],
+    [-1, -1,  1, -1, -1],
+    [-1, -1,  1, -1, -1]
+]).flatten()
 
-# --- Entrenamiento ---
+# Stack de patrones
 patterns = np.stack([J, L, C, T])
+letters = ["J", "L", "C", "T"]
+
+# Entrenar red
 net = HopfieldNetwork()
 net.train(patterns)
 
-# --- Prueba con ruido ---
-test_index = 0  # Probamos con J
+# --- Parte (a): patrón con ruido moderado ---
+print("Prueba con ruido moderado (30%)")
+test_index = 0  # Letra J
 original = patterns[test_index]
-noisy = add_noise(original, noise_level=0.3)
+noisy = add_noise(original, noise_level=0.8)
 
-show_pattern(original, "Original")
-show_pattern(noisy, "Noisy Input")
+show_pattern(original, "Original (Letra J)")
+show_pattern(noisy, "Entrada con Ruido (30%)")
 
 recovered, steps = net.recall(noisy, steps=10)
-
-# Mostrar evolución
 for i, s in enumerate(steps):
-    show_pattern(s, f"Step {i}")
+    show_pattern(s, f"Paso {i}")
 
-# --- Parte (b): patrón MUY ruidoso ---
-very_noisy = add_noise(original, noise_level=0.6)
-show_pattern(very_noisy, "Very Noisy Input")
+# Verificar si recuperó algún patrón conocido
+for i, p in enumerate(patterns):
+    if is_equal(recovered, p):
+        print(f"Recuperó la letra {letters[i]}")
+        break
+else:
+    print("Estado espurio (no coincide con letras conocidas)")
 
-recovered2, steps2 = net.recall(very_noisy, steps=10)
+# # --- Parte (b): patrón MUY ruidoso ---
+# print("\nPrueba con ruido alto (60%)")
+# very_noisy = add_noise(original, noise_level=0.6)
+# show_pattern(very_noisy, "Entrada con Ruido Alto (60%)")
 
-# Mostrar evolución
-for i, s in enumerate(steps2):
-    show_pattern(s, f"Step {i} (Possibly Spurious)")
+# recovered2, steps2 = net.recall(very_noisy, steps=10)
+# for i, s in enumerate(steps2):
+#     show_pattern(s, f"Paso {i} (Posible estado espurio)")
+
+# # Verificar si es espurio
+# for i, p in enumerate(patterns):
+#     if is_equal(recovered2, p):
+#         print(f" Recuperó la letra {letters[i]}")
+#         break
+# else:
+#     print("Estado espurio detectado")
+
